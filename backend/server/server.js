@@ -8,9 +8,11 @@ dotenv.config();
 const app = express();
 
 // Origins allowed to call this API, e.g.
-//   ALLOWED_ORIGINS=https://streampure.vercel.app,https://www.mystreampure.com
-// Comma-separated so you can add a custom domain later without touching code.
-// Local dev origins are always allowed on top of whatever's configured here.
+//   ALLOWED_ORIGINS=https://www.mystreampure.com
+// Comma-separated, for exact-match custom domains. Local dev origins and any
+// streampureapp*.vercel.app URL (production alias AND every per-deployment
+// preview URL Vercel generates, e.g. streampureapp-1pkmee2n6-stream-pure.vercel.app)
+// are always allowed automatically — see VERCEL_PREVIEW_PATTERN below.
 const DEV_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"];
 const envOrigins = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
@@ -18,13 +20,20 @@ const envOrigins = (process.env.ALLOWED_ORIGINS || "")
   .filter(Boolean);
 const allowedOrigins = [...new Set([...DEV_ORIGINS, ...envOrigins])];
 
+// Matches https://streampureapp.vercel.app (production) and any Vercel
+// preview deployment for this same project, e.g.
+// https://streampureapp-<hash>-stream-pure.vercel.app or
+// https://streampureapp-git-<branch>-stream-pure.vercel.app. Scoped to the
+// "streampureapp" prefix so it doesn't blanket-allow unrelated *.vercel.app sites.
+const VERCEL_PREVIEW_PATTERN = /^https:\/\/streampureapp(-[\w-]+)?\.vercel\.app$/;
+
 app.use(
   cors({
     origin: function (origin, callback) {
       // allow requests with no origin (Postman, curl, server-to-server)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      if (allowedOrigins.includes(origin) || VERCEL_PREVIEW_PATTERN.test(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
