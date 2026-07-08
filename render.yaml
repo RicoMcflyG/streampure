@@ -1,0 +1,22 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Lets you deploy the backend by clicking "New +" -> "Blueprint" in the
+# Render dashboard and pointing it at this repo, instead of configuring a
+# web service by hand. Secrets (sync: false) are left blank here and get
+# prompted for during setup — see DEPLOYMENT.md.
+services:
+  - type: web
+    name: streampure-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: MONGO_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+.env
+.DS_Store
+*.log
+npm-debug.log*
+
+# Leftover JSON test-data file from before the MongoDB migration — no
+# longer read by the app, not something we want in git history.
+backend/server/data/users.json
+
+# Empty placeholder repo (own nested .git) that predates this project
+# actually being pushed — not part of the app.
+StreamPureApp/
