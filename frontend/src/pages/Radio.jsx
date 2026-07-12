@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { fetchAppleUSTop100, fetchPreviewFor, fetchPreviewsBatch } from "../api/charts";
 import { fetchGenres, fetchGenreTracks } from "../api/radio";
 import { usePlayer } from "../player/playerContext";
@@ -7,8 +8,11 @@ import SongRow from "../components/SongRow";
 const FEATURED = "__featured__";
 
 export default function Radio() {
+  // Lets links like /radio?genre=pop (e.g. the Home page genre pills) land
+  // directly on that station instead of always starting on Featured.
+  const [searchParams] = useSearchParams();
   const [genres, setGenres] = useState([]);
-  const [activeGenre, setActiveGenre] = useState(FEATURED); // start on Featured
+  const [activeGenre, setActiveGenre] = useState(searchParams.get("genre") || FEATURED);
   const [tracks, setTracks] = useState([]);
   const [loadingGenres, setLoadingGenres] = useState(true);
   const [loadingTracks, setLoadingTracks] = useState(false);
