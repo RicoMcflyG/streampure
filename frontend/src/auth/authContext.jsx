@@ -71,6 +71,7 @@ export function AuthProvider({ children }) {
       signup,
       logout,
       isAuthenticated: !!user,
+      isAdmin: !!user?.isAdmin,
     }),
     [user, loading, error]
   );

@@ -28,6 +28,8 @@ import Concerts from "./pages/Concerts.jsx";
 import Player from "./components/Player.jsx";
 import Charts from "./pages/Charts.jsx"
 import Search from "./pages/Search.jsx";
+import Catalog from "./pages/Catalog.jsx";
+import AdminUpload from "./pages/AdminUpload.jsx";
 
 function App() {
   return (
@@ -46,6 +48,8 @@ function App() {
                 <Route path="/artist/:name" element={<Artist />} />
                 <Route path="/queue" element={<Queue />} />
                 <Route path="/search" element={<Search />} />
+                <Route path="/catalog" element={<Catalog />} />
+                <Route path="/admin/upload" element={<AdminUpload />} />
                 <Route path="/radio" element={<Radio />} />
                 <Route path="/jam" element={<Jam />} />
                 <Route path="/jam-sync" element={<JamSync />} />

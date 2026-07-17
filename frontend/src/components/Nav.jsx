@@ -3,11 +3,12 @@ import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/Logo.png";
 import { useAuth } from "../auth/authContext";
 
-const links = [
+const BASE_LINKS = [
   { to: "/", label: "Home" },
   { to: "/player", label: "Player" },
   { to: "/charts", label: "Top 100"},
   { to: "/radio", label: "Radio" },
+  { to: "/catalog", label: "Catalog" },
   { to: "/playlist", label: "Playlist" },
   { to: "/queue", label: "Queue" },
   { to: "/profile", label: "Profile" }
@@ -25,8 +26,10 @@ const linkClass = ({ isActive }) =>
 export default function Nav() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+
+  const links = isAdmin ? [...BASE_LINKS, { to: "/admin/upload", label: "Upload" }] : BASE_LINKS;
 
   const handleLogout = () => {
     logout();

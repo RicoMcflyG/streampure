@@ -57,6 +57,11 @@ const userSchema = new Schema(
     displayName: String,
     passwordHash: { type: String, required: true },
 
+    // Grants access to the admin catalog-upload endpoints (see
+    // middleware/adminRequired.js and routes/admin.js). False for everyone
+    // by default — flip it with scripts/makeAdmin.js.
+    isAdmin: { type: Boolean, default: false },
+
     // playback data
     recentlyPlayed: { type: [recentlyPlayedSchema], default: [] },
     // trackId -> { trackId, title, artist, cover, count }. Left as a loose

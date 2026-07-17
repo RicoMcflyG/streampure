@@ -16,6 +16,7 @@ function publicUser(u) {
     id: u.id,
     email: u.email,
     displayName: u.displayName,
+    isAdmin: Boolean(u.isAdmin),
   };
 }
 

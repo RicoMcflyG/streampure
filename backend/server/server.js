@@ -62,6 +62,8 @@ app.use("/api/charts", require("./routes/charts"));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/profile", require("./routes/profile"));
 app.use("/api/radio", require("./routes/radio"));
+app.use("/api/tracks", require("./routes/tracks"));
+app.use("/api/admin", require("./routes/admin"));
 
 // Catch-all JSON error handler (must be defined last, after all routes).
 // Without this, an unhandled error (e.g. surfaced via asyncHandler) falls
@@ -72,6 +74,15 @@ app.use((err, _req, res, _next) => {
   console.error("Unhandled error:", err);
   if (err && err.message === "Not allowed by CORS") {
     return res.status(403).json({ message: "Not allowed by CORS" });
+  }
+  // multer surfaces both its own size-limit errors and our custom
+  // fileFilter rejections (routes/admin.js) as errors passed to next() —
+  // these are client mistakes (400), not server failures (500).
+  if (err && (err.code === "LIMIT_FILE_SIZE" || err.name === "MulterError")) {
+    return res.status(400).json({ message: err.code === "LIMIT_FILE_SIZE" ? "File is too large." : err.message });
+  }
+  if (err && /^Unsupported (audio|cover image) format/.test(err.message || "")) {
+    return res.status(400).json({ message: err.message });
   }
   res.status(500).json({ message: "Server error" });
 });
