@@ -61,6 +61,33 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // Both below return { ok, message } instead of throwing/setting just a
+  // boolean — the pages need the actual message even on success ("check
+  // your email") not just failure, unlike login/signup above.
+  const forgotPassword = async (email) => {
+    setError("");
+    try {
+      const { data } = await api.post("/api/auth/forgot-password", { email });
+      return { ok: true, message: data.message };
+    } catch (e) {
+      const message = e.response?.data?.message || "Something went wrong. Please try again.";
+      setError(message);
+      return { ok: false, message };
+    }
+  };
+
+  const resetPassword = async (token, password) => {
+    setError("");
+    try {
+      const { data } = await api.post("/api/auth/reset-password", { token, password });
+      return { ok: true, message: data.message };
+    } catch (e) {
+      const message = e.response?.data?.message || "Could not reset password.";
+      setError(message);
+      return { ok: false, message };
+    }
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -70,6 +97,8 @@ export function AuthProvider({ children }) {
       login,
       signup,
       logout,
+      forgotPassword,
+      resetPassword,
       isAuthenticated: !!user,
       isAdmin: !!user?.isAdmin,
     }),

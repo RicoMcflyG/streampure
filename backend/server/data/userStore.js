@@ -26,6 +26,18 @@ async function findUserById(id) {
   }
 }
 
+// Looks up a user by the *hashed* reset token (routes/auth.js hashes the
+// raw token from the URL before calling this) and only returns a match if
+// the reset hasn't expired yet. Mongo does the expiry check itself via the
+// query so there's no separate "is this stale" branch to get wrong.
+async function findUserByResetToken(tokenHash) {
+  if (!tokenHash) return null;
+  return User.findOne({
+    resetPasswordTokenHash: tokenHash,
+    resetPasswordExpires: { $gt: new Date() },
+  });
+}
+
 async function createUser({ email, passwordHash, displayName }) {
   const existing = await findUserByEmail(email);
   if (existing) throw new Error("EMAIL_TAKEN");
@@ -54,6 +66,7 @@ async function updateUser(user) {
 module.exports = {
   findUserByEmail,
   findUserById,
+  findUserByResetToken,
   createUser,
   updateUser,
 };

@@ -37,6 +37,15 @@ export default function Login() {
             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:ring-2 focus:ring-highlight"
             value={password} onChange={(e)=>setPassword(e.target.value)} required
           />
+          <div className="text-right -mt-2">
+            <button
+              type="button"
+              onClick={()=>navigate("/forgot-password")}
+              className="text-sm text-white/50 hover:text-highlight hover:underline"
+            >
+              Forgot password?
+            </button>
+          </div>
           {error && <p className="text-sm text-red-400">{error}</p>}
           <button className="btn-primary w-full disabled:opacity-60" disabled={submitting}>
             {submitting ? "Logging in…" : "Log In"}

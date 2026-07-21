@@ -57,14 +57,26 @@ If these are left unset, the app still runs fine — Charts/Radio/Search/playlis
 
 ---
 
-## 3. Backend on Render
+## 3. Resend (email for password resets)
+
+Powers the "Forgot password?" flow on the login page. Skippable — if you leave it unconfigured, everything else works fine and forgot-password just quietly no-ops (logs a warning server-side, still shows the user a generic "check your email" message so it doesn't reveal anything is misconfigured).
+
+1. Create a free account at [resend.com](https://resend.com) (100 emails/day, 3,000/month, no credit card).
+2. **API Keys** → **Create API Key** → save it. This is your `RESEND_API_KEY`.
+3. **Sending:** without verifying your own domain, Resend only lets you send from `onboarding@resend.dev` **to the email address on your own Resend account** — fine for testing the flow yourself, but it won't email real users. To send to anyone, add your domain under **Domains**, verify the DNS records it gives you, then use an address at that domain (e.g. `noreply@mystreampure.com`) as `RESEND_FROM_EMAIL`. Until then, set `RESEND_FROM_EMAIL=onboarding@resend.dev` and test with your own account's email.
+
+---
+
+## 4. Backend on Render
 
 **Option A — Blueprint (recommended):** In the Render dashboard, click **New +** → **Blueprint**, connect your GitHub account, and select the `StreamPureApp` repo. Render will read `render.yaml` from the repo root and propose a `streampure-backend` web service. When prompted, fill in the env vars:
 
 - `MONGO_URL` → the connection string from step 1
 - `JWT_SECRET` → any long random string (generate one with `openssl rand -hex 32`, or `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
-- `ALLOWED_ORIGINS` → leave blank for now, you'll fill this in after step 4
+- `ALLOWED_ORIGINS` → leave blank for now, you'll fill this in after step 6
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL` → the five values from step 2
+- `RESEND_API_KEY`, `RESEND_FROM_EMAIL` → from step 3 (leave both blank to skip password-reset emails entirely)
+- `FRONTEND_URL` → leave blank for now too, you'll fill this in alongside `ALLOWED_ORIGINS` after step 6
 
 **Option B — Manual setup:** New + → Web Service → connect the repo → set **Root Directory** to `backend`, **Build Command** to `npm install`, **Start Command** to `npm start`, **Instance Type** to Free, then add the same env vars above.
 
@@ -76,26 +88,28 @@ Visit `https://streampure-backend.onrender.com/healthz` — you should see `{"ok
 
 ---
 
-## 4. Frontend on Vercel
+## 5. Frontend on Vercel
 
 1. At [vercel.com](https://vercel.com), **Add New** → **Project** → import the same GitHub repo.
 2. Set **Root Directory** to `frontend`. Vercel auto-detects the Vite framework preset (build command `vite build`, output `dist`) — you shouldn't need to change those.
-3. Add an environment variable: `VITE_API_URL` = your Render backend URL from step 3 (e.g. `https://streampure-backend.onrender.com`, no trailing slash).
+3. Add an environment variable: `VITE_API_URL` = your Render backend URL from step 4 (e.g. `https://streampure-backend.onrender.com`, no trailing slash).
 4. Deploy. Vercel gives you a URL like `https://streampure-app.vercel.app`.
 
 `frontend/vercel.json` already handles the SPA routing fallback (so refreshing on e.g. `/playlist` doesn't 404).
 
 ---
 
-## 5. Close the loop: CORS
+## 6. Close the loop: CORS
 
-Go back to the Render service → **Environment** → set `ALLOWED_ORIGINS` to your Vercel URL from step 4 (e.g. `https://streampure-app.vercel.app`). Save — Render will redeploy automatically. Without this step, the browser will block the frontend's requests to the backend with a CORS error.
+Go back to the Render service → **Environment** → set `ALLOWED_ORIGINS` to your Vercel URL from step 5 (e.g. `https://streampure-app.vercel.app`). Save — Render will redeploy automatically. Without this step, the browser will block the frontend's requests to the backend with a CORS error.
 
 If you later add a custom domain on either side, add it here too (comma-separated, e.g. `https://streampure-app.vercel.app,https://www.mystreampure.com`).
 
+While you're there, also set `FRONTEND_URL` to that same Vercel URL — it's what the backend uses to build the link inside password-reset emails, so if it's left blank those links point at `localhost` instead of your live site.
+
 ---
 
-## 6. Make yourself an admin
+## 7. Make yourself an admin
 
 Admin accounts are the only ones that can upload to the catalog (`/admin/upload`) — regular sign-up doesn't grant this. Once you've created your normal account on the live site, grant it admin from your own machine:
 
@@ -110,7 +124,7 @@ Only upload content you actually hold the rights to stream — this catalog has 
 
 ---
 
-## 7. Smoke test
+## 8. Smoke test
 
 Visit your Vercel URL and check:
 
@@ -119,6 +133,7 @@ Visit your Vercel URL and check:
 - [ ] Like a song, create a playlist, add a track to it — refresh the page, confirm it's still there (this is the real test that MongoDB persistence is wired up correctly, not just the JSON-file behavior from local dev)
 - [ ] Search for a song and play it
 - [ ] If R2 is configured: log in as your admin account, upload a track at `/admin/upload`, then confirm it plays back from `/catalog` in a normal (non-admin) session
+- [ ] If Resend is configured: click "Forgot password?" on the login page using your own account's email, confirm the email arrives, and that the link logs you in with a new password
 - [ ] Open `/healthz` on the backend URL directly — confirms the API + DB connection independent of the frontend
 
 ---
@@ -129,4 +144,5 @@ Visit your Vercel URL and check:
 - **Custom domain:** both Render and Vercel support adding your own domain for free under their existing plans — it's a few clicks in each dashboard once you own the domain.
 - **Atlas free tier limit:** 512MB storage, shared CPU. Plenty for a small user base — this only holds accounts/likes/playlists/track metadata, not the audio files themselves (those live in R2).
 - **R2 free tier limit:** 10GB storage, no egress fees. Fine for a modest licensed catalog; keep an eye on it as the catalog grows.
+- **Resend free tier limit:** 100 emails/day, 3,000/month, and only to your own address until you verify a sending domain (see step 3). Password-reset links expire after 1 hour.
 - **Local dev vs. production:** both `.env` files are gitignored on purpose — the committed `.env.example` files document what's needed without leaking real secrets. Local dev still points at `localhost` by default; only the hosts' dashboard env vars need the production values above.

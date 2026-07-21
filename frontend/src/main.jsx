@@ -14,6 +14,8 @@ import { LibraryProvider } from "./library/libraryContext";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 import Profile from "./pages/Profile.jsx";
 import Playlist from "./pages/Playlist.jsx";
 import Artist from "./pages/Artist.jsx";
@@ -42,6 +44,8 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/charts" element={<Charts />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/playlist" element={<Playlist />} />

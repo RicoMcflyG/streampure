@@ -62,6 +62,13 @@ const userSchema = new Schema(
     // by default — flip it with scripts/makeAdmin.js.
     isAdmin: { type: Boolean, default: false },
 
+    // "Forgot password" flow (routes/auth.js). We store a hash of the reset
+    // token, never the raw token — same reasoning as hashing the password
+    // itself, so a database leak alone can't be used to take over accounts.
+    // Both null except while a reset is actually in flight.
+    resetPasswordTokenHash: { type: String, default: null },
+    resetPasswordExpires: { type: Date, default: null },
+
     // playback data
     recentlyPlayed: { type: [recentlyPlayedSchema], default: [] },
     // trackId -> { trackId, title, artist, cover, count }. Left as a loose
